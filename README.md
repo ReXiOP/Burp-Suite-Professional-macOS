@@ -26,8 +26,10 @@ The software is installed and a confirmation window is displayed.
 
 -----------------------------------------------------------------------------------------------------------------
 # Burp Suite Professional Installation steps for MacOS
-	# clone the repo
-	--> Execute run.sh file as root user
+	git clone https://github.com/ReXiOP/Burp-Suite-Professional-macOS
+	cd Burp-Suite-Professional-macOS
+	chmod +x *
+	sudo ./run.sh
 
 -----------------------------------------------------------------------------------------------------------------
 
