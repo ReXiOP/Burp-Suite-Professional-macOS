@@ -1,3 +1,4 @@
+theme: Minima
 # Burp-Pro-macOS
 burpsuite_pro for macos2023
 
