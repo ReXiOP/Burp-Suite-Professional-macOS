@@ -25,7 +25,8 @@ The software is installed and a confirmation window is displayed.
 -----------------------------------------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------------------------------------------
-# Burp Suite Professional Installation steps for MacOS 
+# Burp Suite Professional Installation steps for MacOS
+	# clone the repo
 	--> Execute run.sh file as root user
 
 -----------------------------------------------------------------------------------------------------------------
