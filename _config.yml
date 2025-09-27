@@ -1,1 +1,19 @@
-theme: jekyll-theme-primer
+title: Burp Suite Professional macOS
+description: One-click Burp Suite Pro installer for macOS
+baseurl: ""
+url: "https://rexiop.github.io"
+
+# Supported GitHub Pages Theme
+theme: Hacker  # You can change to Architect, Cayman, Hacker, etc.
+
+# Optional navigation links
+navigation:
+  - title: Home
+    url: /
+  - title: GitHub
+    url: https://github.com/ReXiOP/Burp-Suite-Professional-macOS
+
+# Optional plugins
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
