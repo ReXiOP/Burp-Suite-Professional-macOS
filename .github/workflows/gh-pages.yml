@@ -3,20 +3,23 @@ name: GitHub Pages
 on:
   push:
     branches:
-      - main
+      - main  # Change to 'master' if your default branch is master
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout your repo
       - uses: actions/checkout@v3
 
+      # Set up Ruby for Jekyll
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.2
 
+      # Install Jekyll & dependencies
       - name: Install dependencies
         run: |
           gem install bundler
@@ -25,11 +28,13 @@ jobs:
           echo "gem 'jekyll-remote-theme'" >> Gemfile
           bundle install
 
-      - name: Build site
+      # Build the site
+      - name: Build Jekyll site
         run: bundle exec jekyll build
 
+      # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v5  # <- change to v5
+        uses: peaceiris/actions-gh-pages@v5
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_site
