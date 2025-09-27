@@ -3,32 +3,36 @@ name: GitHub Pages
 on:
   push:
     branches:
-      - main  # change to your default branch
+      - main  # or your default branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repo
+      # Checkout the repo
       - uses: actions/checkout@v3
 
-      # Setup Ruby for Jekyll
+      # Setup Ruby
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.2
 
-      # Install Jekyll & plugins
-      - name: Install dependencies
+      # Install Bundler
+      - name: Install Bundler
+        run: gem install bundler
+
+      # Create Gemfile and install dependencies
+      - name: Install Jekyll dependencies
         run: |
-          gem install bundler
           bundle init
-          echo "gem 'jekyll', '~> 4.3'" >> Gemfile
+          echo "gem 'jekyll', '~> 4.4'" >> Gemfile
           echo "gem 'jekyll-remote-theme'" >> Gemfile
+          echo "gem 'jekyll-seo-tag'" >> Gemfile
           bundle install
 
-      # Build Jekyll site
+      # Build the site
       - name: Build Jekyll site
         run: bundle exec jekyll build
 
