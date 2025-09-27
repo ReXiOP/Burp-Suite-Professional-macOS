@@ -1,22 +1,3 @@
-# Site settings
-title: Burp Suite Professional macOS
-description: One-click Burp Suite Pro installer for macOS
-baseurl: ""
-url: "https://rexiop.github.io"
-
-# Use the Hacker theme via remote_theme
 remote_theme: pages-themes/hacker@v0.2.0
 plugins:
   - jekyll-remote-theme
-  - jekyll-seo-tag
-  - jekyll-feed
-
-# Optional: Show downloads link
-show_downloads: true
-
-# Navigation (optional)
-navigation:
-  - title: Home
-    url: /
-  - title: GitHub
-    url: https://github.com/ReXiOP/Burp-Suite-Professional-macOS
