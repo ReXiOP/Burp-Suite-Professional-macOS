@@ -1,8 +1,13 @@
+# Basic site info
 title: Burp Suite Professional macOS
 description: One-click Burp Suite Pro installer for macOS
-baseurl: "" # leave empty for root
-url: "https://rexiop.github.io"
-theme: minimal-mistakes-jekyll
+
+# Use remote theme
 plugins:
   - jekyll-remote-theme
-remote_theme: mmistakes/minimal-mistakes
+
+remote_theme: "mmistakes/minimal-mistakes"
+
+# GitHub Pages settings
+baseurl: ""
+url: "https://rexiop.github.io"
