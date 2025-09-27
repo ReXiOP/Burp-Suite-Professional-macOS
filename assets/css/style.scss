@@ -1,17 +1,109 @@
-
-
 @import "{{ site.theme }}";
 
-/* Dark/Professional Customization */
+/* =============================
+   Dark / Professional Theme
+   ============================= */
+
+/* Base body */
 body {
-  background-color: #0d1117;
-  color: #c9d1d9;
+  background-color: #0d1117;  // Dark background
+  color: #c9d1d9;             // Light grey text
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Links */
 a {
   color: #58a6ff;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+a:hover {
+  color: #1f6feb;
+  text-decoration: underline;
 }
 
+/* Navbar */
 .navbar {
   background-color: #161b22;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #30363d;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Cards / Posts */
+.card, .post {
+  background-color: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover, .post:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Buttons */
+button, .btn {
+  background-color: #238636;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+button:hover, .btn:hover {
+  background-color: #2ea043;
+}
+
+/* Code / Preformatted text */
+pre, code {
+  background-color: #0d1117;
+  color: #f0f6fc;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 0.3rem 0.5rem;
+  font-family: 'Fira Code', monospace;
+}
+
+/* Footer */
+footer {
+  background-color: #161b22;
+  color: #8b949e;
+  text-align: center;
+  padding: 2rem;
+  border-top: 1px solid #30363d;
+  font-size: 0.9rem;
+}
+
+/* Smooth hover effect for images */
+img {
+  border-radius: 12px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+/* Optional: Fancy scroll bar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #30363d;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background-color: #0d1117;
 }
