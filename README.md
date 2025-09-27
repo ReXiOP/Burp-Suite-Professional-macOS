@@ -93,6 +93,12 @@ sudo ./run.sh
 ```
 
 ---
+## Manual Launch on macOS
+```bash
+# Run the JAR file using Java
+java -jar loader.jar
+```
+---
 
 ## 📂 Project Structure
 
