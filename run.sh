@@ -1,5 +1,8 @@
 #!/bin/bash
 
+
+set -euo pipefail
+
 echo "
 ┌─────────────┐
 │┏━┓┏━┓ ┏┓╻╺┳┓│
@@ -8,30 +11,72 @@ echo "
 └─────────────┘
 "
 
-if [[ $EUID -eq 0 ]]; then
-    # Download Burp Suite Profesional Latet Version
-    echo 'Downloading Burp Suite Professional v2025.5.6 ....'
-    Link="https://portswigger-cdn.net/burp/releases/download?product=pro&version=2025.5.6&type=jar"
-    wget "$Link" -O Burp_Suite_Pro.jar --quiet --show-progress
-    sleep 2
 
-    # execute Keygenerator
-    echo 'Starting Keygenerator'
-    (java -jar keygen.jar) &
-    sleep 3s
-    
-    # Execute Burp Suite Professional with Keyloader
-    echo 'Executing Burp Suite Professional with Keyloader'
-    echo "java --illegal-access=permit -Dfile.encoding=utf-8 -javaagent:$(pwd)/loader.jar -noverify -jar $(pwd)/Burp_Suite_Pro.jar &" > burp
-    chmod +x burp
-    cp burp /bin/burp 
-    (./burp)
-else
-    echo "Execute Command With sudo"
-    exit
+if [[ $EUID -ne 0 ]]; then
+    echo "❌ Please run this script with sudo."
+    exit 1
 fi
 
-# Lets Download the latest Burp Suite Professional jar File
-echo "`n`t 1. Please download latest Burp Suite Professional Jar file from :-:"
-echo "`n`t https://portswigger.net/burp/releases/startdownload?product=pro&version=&type=Jar"
-echo "`n`t 2. Replace the existing Burp-Suite-Pro.jar file with downloaded jar file. `n`t Keep previous file name"
+
+show_versions() {
+    cat <<EOF
+
+Available Burp Suite Pro Versions:
+1) 2025.5.6  (latest as of now)
+2) 2025.5.5
+3) 2025.4.2
+4) 2025.3.1
+5) 2024.12.2
+6) Custom version (enter manually)
+
+EOF
+}
+
+
+show_versions
+read -rp "Select version [1-6]: " choice
+
+case "$choice" in
+    1) VERSION="2025.5.6" ;;
+    2) VERSION="2025.5.5" ;;
+    3) VERSION="2025.4.2" ;;
+    4) VERSION="2025.3.1" ;;
+    5) VERSION="2024.12.2" ;;
+    6) read -rp "Enter the version (e.g., 2023.12.1): " VERSION ;;
+    *) echo "Invalid option. Exiting."; exit 1 ;;
+esac
+
+echo "✅ Selected Burp Suite version: $VERSION"
+
+LINK="https://portswigger-cdn.net/burp/releases/download?product=pro&version=$VERSION&type=jar"
+echo "⬇️  Downloading Burp Suite Professional v$VERSION ..."
+wget "$LINK" -O "Burp_Suite_Pro_${VERSION}.jar" --quiet --show-progress
+
+# Use latest jar as default
+ln -sf "Burp_Suite_Pro_${VERSION}.jar" Burp_Suite_Pro.jar
+
+sleep 2
+
+
+echo "🚀 Starting Keygenerator..."
+(java -jar keygen.jar) &
+sleep 3
+
+echo "🚀 Setting up Burp Suite Pro launcher..."
+cat > burp <<EOF
+#!/bin/bash
+java --illegal-access=permit -Dfile.encoding=utf-8 -javaagent:$(pwd)/loader.jar -noverify -jar $(pwd)/Burp_Suite_Pro.jar &
+EOF
+
+chmod +x burp
+cp burp /usr/local/bin/burp  
+./burp
+
+echo -e "\n✅ Burp Suite Pro v$VERSION launched successfully!"
+echo "👉 You can run 'burp' anytime to start it."
+
+echo "
+To update later:
+  1. Run this script again and choose a different version.
+  2. It will download and link the selected version automatically.
+"
