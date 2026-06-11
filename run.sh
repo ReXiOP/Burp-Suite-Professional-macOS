@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# ─────────────────────────────────────────────────────────
+#  Burp Suite Professional — macOS Installer & Launcher
+# ─────────────────────────────────────────────────────────
 
 set -euo pipefail
 
@@ -11,13 +14,46 @@ echo "
 └─────────────┘
 "
 
+# ── macOS check ──────────────────────────────────────────
+if [[ "$(uname -s)" != "Darwin" ]]; then
+    echo "⚠️  This script is designed for macOS."
+    echo "   Detected OS: $(uname -s)"
+    read -rp "Continue anyway? [y/N]: " confirm
+    [[ "$confirm" =~ ^[Yy]$ ]] || exit 1
+fi
 
+# ── Root / sudo check ───────────────────────────────────
 if [[ $EUID -ne 0 ]]; then
     echo "❌ Please run this script with sudo."
     exit 1
 fi
 
+# ── Java check ──────────────────────────────────────────
+if ! command -v java &>/dev/null; then
+    echo "❌ Java is not installed."
+    echo ""
+    echo "   Install it with Homebrew:"
+    echo "     brew install --cask temurin"
+    echo ""
+    echo "   Or download from: https://adoptium.net"
+    exit 1
+fi
 
+JAVA_VERSION=$(java -version 2>&1 | head -1 | awk -F '"' '{print $2}')
+echo "☕ Found Java: $JAVA_VERSION"
+
+# ── Detect architecture ────────────────────────────────
+ARCH="$(uname -m)"
+if [[ "$ARCH" == "arm64" ]]; then
+    echo "🍎 Running on Apple Silicon (arm64)"
+    BIN_DIR="/opt/homebrew/bin"
+else
+    echo "💻 Running on Intel Mac (x86_64)"
+    BIN_DIR="/usr/local/bin"
+fi
+mkdir -p "$BIN_DIR"
+
+# ── Version selection ───────────────────────────────────
 show_versions() {
     cat <<EOF
 
@@ -31,7 +67,6 @@ Available Burp Suite Pro Versions:
 
 EOF
 }
-
 
 show_versions
 read -rp "Select version [1-6]: " choice
@@ -48,35 +83,53 @@ esac
 
 echo "✅ Selected Burp Suite version: $VERSION"
 
+# ── Download (curl — ships with macOS) ──────────────────
 LINK="https://portswigger-cdn.net/burp/releases/download?product=pro&version=$VERSION&type=jar"
-echo "⬇️  Downloading Burp Suite Professional v$VERSION ..."
-wget "$LINK" -O "Burp_Suite_Pro_${VERSION}.jar" --quiet --show-progress
+JAR_FILE="Burp_Suite_Pro_${VERSION}.jar"
 
-# Use latest jar as default
-ln -sf "Burp_Suite_Pro_${VERSION}.jar" Burp_Suite_Pro.jar
+echo "⬇️  Downloading Burp Suite Professional v$VERSION ..."
+curl -L "$LINK" -o "$JAR_FILE" --progress-bar
+
+# Symlink latest jar
+ln -sf "$JAR_FILE" Burp_Suite_Pro.jar
 
 sleep 2
 
-
+# ── Keygenerator ────────────────────────────────────────
 echo "🚀 Starting Keygenerator..."
 (java -jar keygen.jar) &
 sleep 3
 
+# ── Create launcher script ──────────────────────────────
+INSTALL_DIR="$(pwd)"
+LAUNCHER="burp"
+
 echo "🚀 Setting up Burp Suite Pro launcher..."
-cat > burp <<EOF
+cat > "$LAUNCHER" <<EOF
 #!/bin/bash
-java --illegal-access=permit -Dfile.encoding=utf-8 -javaagent:$(pwd)/loader.jar -noverify -jar $(pwd)/Burp_Suite_Pro.jar &
+java \\
+  --add-opens=java.desktop/javax.swing=ALL-UNNAMED \\
+  --add-opens=java.base/java.lang=ALL-UNNAMED \\
+  --add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED \\
+  --add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED \\
+  --add-opens=java.base/jdk.internal.org.objectweb.asm.Opcodes=ALL-UNNAMED \\
+  -Dfile.encoding=utf-8 \\
+  -javaagent:${INSTALL_DIR}/loader.jar \\
+  -noverify \\
+  -jar ${INSTALL_DIR}/Burp_Suite_Pro.jar &
 EOF
 
-chmod +x burp
-cp burp /usr/local/bin/burp  
-./burp
+chmod +x "$LAUNCHER"
+cp "$LAUNCHER" "$BIN_DIR/burp"
+./"$LAUNCHER"
 
-echo -e "\n✅ Burp Suite Pro v$VERSION launched successfully!"
-echo "👉 You can run 'burp' anytime to start it."
-
-echo "
-To update later:
-  1. Run this script again and choose a different version.
-  2. It will download and link the selected version automatically.
-"
+echo ""
+echo "✅ Burp Suite Pro v$VERSION launched successfully!"
+echo "👉 You can run 'burp' anytime from your terminal."
+echo ""
+echo "   Launcher installed to: $BIN_DIR/burp"
+echo ""
+echo "To update later:"
+echo "  1. Run this script again and choose a different version."
+echo "  2. It will download and link the selected version automatically."
+echo ""
