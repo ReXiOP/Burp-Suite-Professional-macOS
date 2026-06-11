@@ -93,69 +93,93 @@ for i in "${!VERSIONS[@]}"; do
     if [[ $i -eq 0 ]]; then label="$label  (latest)"; fi
     echo "  $((i+1))) $label"
 done
-echo "  $((${#VERSIONS[@]}+1))) Custom version (enter manually)"
+echo "  $((${#VERSIONS[@]}+1))) Custom version (download manually)"
+echo "  $((${#VERSIONS[@]}+2))) Use local JAR file (enter path manually)"
 echo ""
 
-read -rp "Select version [1-$((${#VERSIONS[@]}+1))]: " choice
+read -rp "Select option [1-$((${#VERSIONS[@]}+2))]: " choice
+
+LOCAL_JAR_MODE=false
+VERSION="Custom"
 
 if [[ "$choice" -ge 1 && "$choice" -le ${#VERSIONS[@]} ]] 2>/dev/null; then
     VERSION="${VERSIONS[$((choice-1))]}"
 elif [[ "$choice" -eq $((${#VERSIONS[@]}+1)) ]] 2>/dev/null; then
-    read -rp "Enter the version (e.g., 2023.12.1): " VERSION
+    read -rp "Enter the version to download (e.g., 2023.12.1): " VERSION
+elif [[ "$choice" -eq $((${#VERSIONS[@]}+2)) ]] 2>/dev/null; then
+    LOCAL_JAR_MODE=true
+    read -rp "Enter the full path to your Burp Suite JAR file: " LOCAL_JAR_PATH
 else
     echo "Invalid option. Exiting."
     exit 1
 fi
 
-echo "✅ Selected Burp Suite version: $VERSION"
+if [[ "$LOCAL_JAR_MODE" == false ]]; then
+    echo "✅ Selected Burp Suite version: $VERSION"
+fi
 
 # ── Check for existing JAR / Download ───────────────────
 LINK="https://portswigger.net/burp/releases/startdownload?product=pro&version=$VERSION&type=jar"
 JAR_FILE="Burp_Suite_Pro_${VERSION}.jar"
 
-NEED_DOWNLOAD=true
-
-if [[ -f "$JAR_FILE" ]]; then
-    # Verify existing file is a real JAR (ZIP starts with PK magic bytes)
-    if head -c 2 "$JAR_FILE" | grep -q "PK"; then
-        FILE_SIZE=$(du -h "$JAR_FILE" | awk '{print $1}')
-        echo ""
-        echo "📦 Found existing JAR: $JAR_FILE ($FILE_SIZE)"
-        read -rp "   Re-download? [y/N]: " redownload
-        if [[ "$redownload" =~ ^[Yy]$ ]]; then
-            NEED_DOWNLOAD=true
+if [[ "$LOCAL_JAR_MODE" == true ]]; then
+    if [[ -f "$LOCAL_JAR_PATH" ]]; then
+        if head -c 2 "$LOCAL_JAR_PATH" | grep -q "PK"; then
+            echo "✅ Using local JAR file: $LOCAL_JAR_PATH"
+            ln -sf "$LOCAL_JAR_PATH" Burp_Suite_Pro.jar
         else
-            NEED_DOWNLOAD=false
-            echo "⏩ Skipping download — using existing JAR."
+            echo "❌ The provided file is not a valid JAR/ZIP archive."
+            exit 1
         fi
     else
-        echo "⚠️  Existing file is corrupted. Re-downloading..."
-        rm -f "$JAR_FILE"
-    fi
-fi
-
-if [[ "$NEED_DOWNLOAD" == true ]]; then
-    echo "⬇️  Downloading Burp Suite Professional v$VERSION ..."
-    curl -L "$LINK" -o "$JAR_FILE" --progress-bar
-
-    # Validate: JAR files are ZIP archives (start with "PK" magic bytes)
-    if ! head -c 2 "$JAR_FILE" | grep -q "PK"; then
-        echo ""
-        echo "❌ Download failed — version $VERSION does not exist!"
-        echo "   PortSwigger returned an HTML page instead of a JAR file."
-        echo ""
-        echo "   Check available versions at:"
-        echo "   https://portswigger.net/burp/releases"
-        rm -f "$JAR_FILE"
+        echo "❌ File not found: $LOCAL_JAR_PATH"
         exit 1
     fi
+else
+    NEED_DOWNLOAD=true
 
-    FILE_SIZE=$(du -h "$JAR_FILE" | awk '{print $1}')
-    echo "✅ Downloaded successfully ($FILE_SIZE)"
+    if [[ -f "$JAR_FILE" ]]; then
+        # Verify existing file is a real JAR (ZIP starts with PK magic bytes)
+        if head -c 2 "$JAR_FILE" | grep -q "PK"; then
+            FILE_SIZE=$(du -h "$JAR_FILE" | awk '{print $1}')
+            echo ""
+            echo "📦 Found existing JAR: $JAR_FILE ($FILE_SIZE)"
+            read -rp "   Re-download? [y/N]: " redownload
+            if [[ "$redownload" =~ ^[Yy]$ ]]; then
+                NEED_DOWNLOAD=true
+            else
+                NEED_DOWNLOAD=false
+                echo "⏩ Skipping download — using existing JAR."
+            fi
+        else
+            echo "⚠️  Existing file is corrupted. Re-downloading..."
+            rm -f "$JAR_FILE"
+        fi
+    fi
+
+    if [[ "$NEED_DOWNLOAD" == true ]]; then
+        echo "⬇️  Downloading Burp Suite Professional v$VERSION ..."
+        curl -L "$LINK" -o "$JAR_FILE" --progress-bar
+
+        # Validate: JAR files are ZIP archives (start with "PK" magic bytes)
+        if ! head -c 2 "$JAR_FILE" | grep -q "PK"; then
+            echo ""
+            echo "❌ Download failed — version $VERSION does not exist!"
+            echo "   PortSwigger returned an HTML page instead of a JAR file."
+            echo ""
+            echo "   Check available versions at:"
+            echo "   https://portswigger.net/burp/releases"
+            rm -f "$JAR_FILE"
+            exit 1
+        fi
+
+        FILE_SIZE=$(du -h "$JAR_FILE" | awk '{print $1}')
+        echo "✅ Downloaded successfully ($FILE_SIZE)"
+    fi
+
+    # Symlink latest jar
+    ln -sf "$JAR_FILE" Burp_Suite_Pro.jar
 fi
-
-# Symlink latest jar
-ln -sf "$JAR_FILE" Burp_Suite_Pro.jar
 
 sleep 1
 
