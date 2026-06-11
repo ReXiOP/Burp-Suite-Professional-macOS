@@ -66,33 +66,46 @@ else
 fi
 mkdir -p "$BIN_DIR"
 
-# ── Version selection ───────────────────────────────────
-show_versions() {
-    cat <<EOF
+# ── Fetch versions from PortSwigger ─────────────────────
+echo "🔍 Fetching latest Burp Suite versions..."
 
-Available Burp Suite Pro Versions:
-1) 2025.5.6  (latest as of now)
-2) 2025.5.5
-3) 2025.4.2
-4) 2025.3.1
-5) 2024.12.2
-6) Custom version (enter manually)
+VERSIONS=()
+RAW=$(curl -sL "https://portswigger.net/burp/releases" 2>/dev/null \
+    | grep -oE '[0-9]{4}\.[0-9]+\.[0-9]+' \
+    | sort -t. -k1,1nr -k2,2nr -k3,3nr \
+    | awk '!seen[$0]++' \
+    | head -5)
 
-EOF
-}
+if [[ -n "$RAW" ]]; then
+    while IFS= read -r v; do
+        VERSIONS+=("$v")
+    done <<< "$RAW"
+    echo "✅ Fetched ${#VERSIONS[@]} versions from portswigger.net"
+else
+    echo "⚠️  Could not fetch versions online — using fallback list."
+    VERSIONS=("2025.5.6" "2025.5.5" "2025.4.2" "2025.3.1" "2024.12.2")
+fi
 
-show_versions
-read -rp "Select version [1-6]: " choice
+echo ""
+echo "Available Burp Suite Pro Versions:"
+for i in "${!VERSIONS[@]}"; do
+    label="${VERSIONS[$i]}"
+    if [[ $i -eq 0 ]]; then label="$label  (latest)"; fi
+    echo "  $((i+1))) $label"
+done
+echo "  $((${#VERSIONS[@]}+1))) Custom version (enter manually)"
+echo ""
 
-case "$choice" in
-    1) VERSION="2025.5.6" ;;
-    2) VERSION="2025.5.5" ;;
-    3) VERSION="2025.4.2" ;;
-    4) VERSION="2025.3.1" ;;
-    5) VERSION="2024.12.2" ;;
-    6) read -rp "Enter the version (e.g., 2023.12.1): " VERSION ;;
-    *) echo "Invalid option. Exiting."; exit 1 ;;
-esac
+read -rp "Select version [1-$((${#VERSIONS[@]}+1))]: " choice
+
+if [[ "$choice" -ge 1 && "$choice" -le ${#VERSIONS[@]} ]] 2>/dev/null; then
+    VERSION="${VERSIONS[$((choice-1))]}"
+elif [[ "$choice" -eq $((${#VERSIONS[@]}+1)) ]] 2>/dev/null; then
+    read -rp "Enter the version (e.g., 2023.12.1): " VERSION
+else
+    echo "Invalid option. Exiting."
+    exit 1
+fi
 
 echo "✅ Selected Burp Suite version: $VERSION"
 
