@@ -96,7 +96,28 @@ esac
 
 echo "✅ Selected Burp Suite version: $VERSION"
 
-# ── Download (curl — ships with macOS) ──────────────────
+# ── Fast download helper ────────────────────────────────
+fast_download() {
+    local url="$1"
+    local output="$2"
+
+    if command -v aria2c &>/dev/null; then
+        echo "   ⚡ Using aria2c (multi-connection download)"
+        aria2c -x 16 -s 16 -k 1M \
+            --file-allocation=none \
+            --console-log-level=warn \
+            --summary-interval=3 \
+            -o "$output" "$url"
+    else
+        echo "   💡 Tip: Install aria2 for 5-10x faster downloads:"
+        echo "      brew install aria2"
+        echo ""
+        curl -L "$url" -o "$output" --progress-bar \
+            --retry 3 --retry-delay 2 --connect-timeout 15
+    fi
+}
+
+# ── Check for existing JAR / Download ───────────────────
 LINK="https://portswigger-cdn.net/burp/releases/download?product=pro&version=$VERSION&type=jar"
 JAR_FILE="Burp_Suite_Pro_${VERSION}.jar"
 
@@ -107,13 +128,13 @@ if [[ -f "$JAR_FILE" ]]; then
     read -rp "   Re-download? [y/N]: " redownload
     if [[ "$redownload" =~ ^[Yy]$ ]]; then
         echo "⬇️  Re-downloading Burp Suite Professional v$VERSION ..."
-        curl -L "$LINK" -o "$JAR_FILE" --progress-bar
+        fast_download "$LINK" "$JAR_FILE"
     else
         echo "⏩ Skipping download — using existing JAR."
     fi
 else
     echo "⬇️  Downloading Burp Suite Professional v$VERSION ..."
-    curl -L "$LINK" -o "$JAR_FILE" --progress-bar
+    fast_download "$LINK" "$JAR_FILE"
 fi
 
 # Symlink latest jar
@@ -131,17 +152,20 @@ INSTALL_DIR="$(pwd)"
 LAUNCHER="burp"
 
 echo "🚀 Setting up Burp Suite Pro launcher..."
-cat > "$LAUNCHER" <<EOF
+cat > "$LAUNCHER" <<'EOF'
 #!/bin/bash
-java \\
-  --add-opens=java.desktop/javax.swing=ALL-UNNAMED \\
-  --add-opens=java.base/java.lang=ALL-UNNAMED \\
-  --add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED \\
-  --add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED \\
-  -Dfile.encoding=utf-8 \\
-  -javaagent:${INSTALL_DIR}/loader.jar \\
-  -jar ${INSTALL_DIR}/Burp_Suite_Pro.jar &
+java \
+  --add-opens=java.desktop/javax.swing=ALL-UNNAMED \
+  --add-opens=java.base/java.lang=ALL-UNNAMED \
+  --add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED \
+  --add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED \
+  -Dfile.encoding=utf-8 \
+  -javaagent:INSTALL_DIR_PLACEHOLDER/loader.jar \
+  -jar INSTALL_DIR_PLACEHOLDER/Burp_Suite_Pro.jar &
 EOF
+
+# Replace placeholder with actual install dir
+sed -i '' "s|INSTALL_DIR_PLACEHOLDER|${INSTALL_DIR}|g" "$LAUNCHER"
 
 chmod +x "$LAUNCHER"
 cp "$LAUNCHER" "$BIN_DIR/burp"
