@@ -109,12 +109,6 @@ fi
 
 echo "✅ Selected Burp Suite version: $VERSION"
 
-# ── Download helper ──────────────────────────────────────
-download_jar() {
-    curl -L "$1" -o "$2" --progress-bar \
-        --retry 3 --retry-delay 2 --connect-timeout 15
-}
-
 # ── Check for existing JAR / Download ───────────────────
 LINK="https://portswigger-cdn.net/burp/releases/download?product=pro&version=$VERSION&type=jar"
 JAR_FILE="Burp_Suite_Pro_${VERSION}.jar"
@@ -126,13 +120,13 @@ if [[ -f "$JAR_FILE" ]]; then
     read -rp "   Re-download? [y/N]: " redownload
     if [[ "$redownload" =~ ^[Yy]$ ]]; then
         echo "⬇️  Re-downloading Burp Suite Professional v$VERSION ..."
-        download_jar "$LINK" "$JAR_FILE"
+        curl -L "$LINK" -o "$JAR_FILE" --progress-bar
     else
         echo "⏩ Skipping download — using existing JAR."
     fi
 else
     echo "⬇️  Downloading Burp Suite Professional v$VERSION ..."
-    fast_download "$LINK" "$JAR_FILE"
+    curl -L "$LINK" -o "$JAR_FILE" --progress-bar
 fi
 
 # Symlink latest jar
