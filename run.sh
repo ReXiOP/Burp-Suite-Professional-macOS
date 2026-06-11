@@ -6,13 +6,21 @@
 
 set -euo pipefail
 
-echo "
-┌─────────────┐
-│┏━┓┏━┓ ┏┓╻╺┳┓│
-│┗━┓┣━┫  ┃┃ ┃┃│
-│┗━┛╹ ╹┗━┛╹╺┻┛│
-└─────────────┘
-"
+echo -e "\e[1;36m"
+echo " ┌──────────────────────────────────────────────┐ "
+echo " │  ____                  ____        _ _       │ "
+echo " │ | __ ) _   _ _ __ _ __/ ___| _   _(_) |_ ___ │ "
+echo " │ |  _ \| | | | '__| '_ \___ \| | | | | __/ _ \│ "
+echo " │ | |_) | |_| | |  | |_) |__) | |_| | | ||  __/│ "
+echo " │ |____/ \__,_|_|  | .__/____/ \__,_|_|\__\___|│ "
+echo " │                  |_|                         │ "
+echo " │            P R O F E S S I O N A L           │ "
+echo " ├──────────────────────────────────────────────┤ "
+echo " │           ✨ macOS Installer ✨            │ "
+echo " │        Developed by Muhammad Sajid           │ "
+echo " │                 (@ReXiOP)                    │ "
+echo " └──────────────────────────────────────────────┘ "
+echo -e "\e[0m"
 
 echo "⚠️  IMPORTANT NOTE:"
 echo "   The automatic downloader is currently NOT WORKING due to PortSwigger changes."
@@ -22,7 +30,6 @@ echo "   Then select option 7 in the menu below to provide the local file path."
 echo "─────────────────────────────────────────────────────────"
 echo ""
 
-# ── macOS check ──────────────────────────────────────────
 if [[ "$(uname -s)" != "Darwin" ]]; then
     echo "⚠️  This script is designed for macOS."
     echo "   Detected OS: $(uname -s)"
@@ -30,13 +37,11 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
     [[ "$confirm" =~ ^[Yy]$ ]] || exit 1
 fi
 
-# ── Root / sudo check ───────────────────────────────────
 if [[ $EUID -ne 0 ]]; then
     echo "❌ Please run this script with sudo."
     exit 1
 fi
 
-# ── Java check ──────────────────────────────────────────
 if ! command -v java &>/dev/null; then
     echo "❌ Java is not installed."
     echo ""
@@ -63,7 +68,6 @@ if [[ "$JAVA_MAJOR" -lt 21 ]]; then
     exit 1
 fi
 
-# ── Detect architecture ────────────────────────────────
 ARCH="$(uname -m)"
 if [[ "$ARCH" == "arm64" ]]; then
     echo "🍎 Running on Apple Silicon (arm64)"
@@ -74,7 +78,6 @@ else
 fi
 mkdir -p "$BIN_DIR"
 
-# ── Fetch versions from PortSwigger ─────────────────────
 echo "🔍 Fetching latest Burp Suite versions..."
 
 VERSIONS=()
@@ -126,7 +129,6 @@ if [[ "$LOCAL_JAR_MODE" == false ]]; then
     echo "✅ Selected Burp Suite version: $VERSION"
 fi
 
-# ── Check for existing JAR / Download ───────────────────
 LINK="https://portswigger.net/burp/releases/startdownload?product=pro&version=$VERSION&type=jar"
 JAR_FILE="Burp_Suite_Pro_${VERSION}.jar"
 
@@ -147,7 +149,6 @@ else
     NEED_DOWNLOAD=true
 
     if [[ -f "$JAR_FILE" ]]; then
-        # Verify existing file is a real JAR (ZIP starts with PK magic bytes)
         if head -c 2 "$JAR_FILE" | grep -q "PK"; then
             FILE_SIZE=$(du -h "$JAR_FILE" | awk '{print $1}')
             echo ""
@@ -169,7 +170,6 @@ else
         echo "⬇️  Downloading Burp Suite Professional v$VERSION ..."
         curl -L "$LINK" -o "$JAR_FILE" --progress-bar
 
-        # Validate: JAR files are ZIP archives (start with "PK" magic bytes)
         if ! head -c 2 "$JAR_FILE" | grep -q "PK"; then
             echo ""
             echo "❌ Download failed — version $VERSION does not exist!"
@@ -185,18 +185,16 @@ else
         echo "✅ Downloaded successfully ($FILE_SIZE)"
     fi
 
-    # Symlink latest jar
+   
     ln -sf "$JAR_FILE" Burp_Suite_Pro.jar
 fi
 
 sleep 1
 
-# ── Keygenerator ────────────────────────────────────────
 echo "🚀 Starting Keygenerator..."
 (java -jar keygen.jar) &
 sleep 3
 
-# ── Create launcher script ──────────────────────────────
 INSTALL_DIR="$(pwd)"
 LAUNCHER="burp"
 
@@ -213,7 +211,6 @@ java \
   -jar INSTALL_DIR_PLACEHOLDER/Burp_Suite_Pro.jar &
 EOF
 
-# Replace placeholder with actual install dir
 sed -i '' "s|INSTALL_DIR_PLACEHOLDER|${INSTALL_DIR}|g" "$LAUNCHER"
 
 chmod +x "$LAUNCHER"
