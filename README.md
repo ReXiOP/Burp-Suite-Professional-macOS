@@ -146,9 +146,10 @@ Available Burp Suite Pro Versions:
 3) 2025.4.2
 4) 2025.3.1
 5) 2024.12.2
-6) Custom version
+6) Custom version (download manually)
+7) Use local JAR file (enter path manually)
 
-Select version [1-6]:
+Select option [1-7]:
 ```
 
 The script will:
