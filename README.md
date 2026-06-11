@@ -71,6 +71,17 @@ Switch versions anytime by re-running the installer.
 
 <br/>
 
+> [!WARNING]
+> **Auto-Downloader Currently Broken**
+> PortSwigger has changed their direct download links, so the automatic download step is currently failing.
+>
+> **Workaround:**
+> 1. Download the Burp Suite Professional **JAR** file manually from [portswigger.net/burp/releases](https://portswigger.net/burp/releases).
+> 2. Run this script (`sudo ./run.sh`) and select **Option 7**.
+> 3. Provide the path to the downloaded JAR file when prompted.
+
+<br/>
+
 ---
 
 <br/>

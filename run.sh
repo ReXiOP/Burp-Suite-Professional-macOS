@@ -14,6 +14,14 @@ echo "
 └─────────────┘
 "
 
+echo "⚠️  IMPORTANT NOTE:"
+echo "   The automatic downloader is currently NOT WORKING due to PortSwigger changes."
+echo "   Please download the JAR file manually from:"
+echo "   👉 https://portswigger.net/burp/releases"
+echo "   Then select option 7 in the menu below to provide the local file path."
+echo "─────────────────────────────────────────────────────────"
+echo ""
+
 # ── macOS check ──────────────────────────────────────────
 if [[ "$(uname -s)" != "Darwin" ]]; then
     echo "⚠️  This script is designed for macOS."
