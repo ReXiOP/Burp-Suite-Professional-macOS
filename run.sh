@@ -40,7 +40,20 @@ if ! command -v java &>/dev/null; then
 fi
 
 JAVA_VERSION=$(java -version 2>&1 | head -1 | awk -F '"' '{print $2}')
+JAVA_MAJOR=$(echo "$JAVA_VERSION" | awk -F'.' '{print $1}')
 echo "☕ Found Java: $JAVA_VERSION"
+
+if [[ "$JAVA_MAJOR" -lt 21 ]]; then
+    echo ""
+    echo "❌ Java 21 or higher is required (you have Java $JAVA_MAJOR)."
+    echo "   Burp Suite 2025.x is compiled for Java 21 (class file v65)."
+    echo ""
+    echo "   Upgrade with Homebrew:"
+    echo "     brew install --cask temurin"
+    echo ""
+    echo "   Or download from: https://adoptium.net"
+    exit 1
+fi
 
 # ── Detect architecture ────────────────────────────────
 ARCH="$(uname -m)"
@@ -112,10 +125,8 @@ java \\
   --add-opens=java.base/java.lang=ALL-UNNAMED \\
   --add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED \\
   --add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED \\
-  --add-opens=java.base/jdk.internal.org.objectweb.asm.Opcodes=ALL-UNNAMED \\
   -Dfile.encoding=utf-8 \\
   -javaagent:${INSTALL_DIR}/loader.jar \\
-  -noverify \\
   -jar ${INSTALL_DIR}/Burp_Suite_Pro.jar &
 EOF
 
