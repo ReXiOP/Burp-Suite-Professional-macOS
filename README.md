@@ -301,12 +301,8 @@ brew install --cask temurin
 The launcher wasn't added to your PATH. Run:
 
 ```bash
-# Apple Silicon
-echo 'export PATH="/opt/homebrew/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
-
-# Intel
-echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.zshrc
+# Add the current working directory to your PATH
+echo 'export PATH="'$(pwd)':$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
