@@ -370,6 +370,6 @@ sudo ./run.sh
 
 <br/>
 
-<img src="https://img.shields.io/github/stars/ReXiOP/Burp-Suite-Professional-macOS?style=for-the-badge&color=yellow&logo=github" />
+<img src="https://img.shields.io/github/stars/ReXiOP/Burp-Suite-Professional-macOS" />
 
 </div>

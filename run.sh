@@ -100,13 +100,26 @@ echo "✅ Selected Burp Suite version: $VERSION"
 LINK="https://portswigger-cdn.net/burp/releases/download?product=pro&version=$VERSION&type=jar"
 JAR_FILE="Burp_Suite_Pro_${VERSION}.jar"
 
-echo "⬇️  Downloading Burp Suite Professional v$VERSION ..."
-curl -L "$LINK" -o "$JAR_FILE" --progress-bar
+if [[ -f "$JAR_FILE" ]]; then
+    FILE_SIZE=$(du -h "$JAR_FILE" | awk '{print $1}')
+    echo ""
+    echo "📦 Found existing JAR: $JAR_FILE ($FILE_SIZE)"
+    read -rp "   Re-download? [y/N]: " redownload
+    if [[ "$redownload" =~ ^[Yy]$ ]]; then
+        echo "⬇️  Re-downloading Burp Suite Professional v$VERSION ..."
+        curl -L "$LINK" -o "$JAR_FILE" --progress-bar
+    else
+        echo "⏩ Skipping download — using existing JAR."
+    fi
+else
+    echo "⬇️  Downloading Burp Suite Professional v$VERSION ..."
+    curl -L "$LINK" -o "$JAR_FILE" --progress-bar
+fi
 
 # Symlink latest jar
 ln -sf "$JAR_FILE" Burp_Suite_Pro.jar
 
-sleep 2
+sleep 1
 
 # ── Keygenerator ────────────────────────────────────────
 echo "🚀 Starting Keygenerator..."
