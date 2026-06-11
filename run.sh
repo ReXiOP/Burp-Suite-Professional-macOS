@@ -109,25 +109,10 @@ fi
 
 echo "✅ Selected Burp Suite version: $VERSION"
 
-# ── Fast download helper ────────────────────────────────
-fast_download() {
-    local url="$1"
-    local output="$2"
-
-    if command -v aria2c &>/dev/null; then
-        echo "   ⚡ Using aria2c (multi-connection download)"
-        aria2c -x 16 -s 16 -k 1M \
-            --file-allocation=none \
-            --console-log-level=warn \
-            --summary-interval=3 \
-            -o "$output" "$url"
-    else
-        echo "   💡 Tip: Install aria2 for 5-10x faster downloads:"
-        echo "      brew install aria2"
-        echo ""
-        curl -L "$url" -o "$output" --progress-bar \
-            --retry 3 --retry-delay 2 --connect-timeout 15
-    fi
+# ── Download helper ──────────────────────────────────────
+download_jar() {
+    curl -L "$1" -o "$2" --progress-bar \
+        --retry 3 --retry-delay 2 --connect-timeout 15
 }
 
 # ── Check for existing JAR / Download ───────────────────
@@ -141,7 +126,7 @@ if [[ -f "$JAR_FILE" ]]; then
     read -rp "   Re-download? [y/N]: " redownload
     if [[ "$redownload" =~ ^[Yy]$ ]]; then
         echo "⬇️  Re-downloading Burp Suite Professional v$VERSION ..."
-        fast_download "$LINK" "$JAR_FILE"
+        download_jar "$LINK" "$JAR_FILE"
     else
         echo "⏩ Skipping download — using existing JAR."
     fi
