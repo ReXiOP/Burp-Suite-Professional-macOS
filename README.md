@@ -269,9 +269,10 @@ java -version
 <details>
 <summary><b>❌ "Permission denied"</b></summary>
 
-Make sure you're running with `sudo`:
+Make sure the script is executable and you're running with `sudo`:
 
 ```bash
+chmod +x run.sh
 sudo ./run.sh
 ```
 
