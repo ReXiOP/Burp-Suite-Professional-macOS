@@ -110,23 +110,48 @@ fi
 echo "✅ Selected Burp Suite version: $VERSION"
 
 # ── Check for existing JAR / Download ───────────────────
-LINK="https://portswigger-cdn.net/burp/releases/download?product=pro&version=$VERSION&type=jar"
+LINK="https://portswigger.net/burp/releases/startdownload?product=pro&version=$VERSION&type=jar"
 JAR_FILE="Burp_Suite_Pro_${VERSION}.jar"
 
+NEED_DOWNLOAD=true
+
 if [[ -f "$JAR_FILE" ]]; then
-    FILE_SIZE=$(du -h "$JAR_FILE" | awk '{print $1}')
-    echo ""
-    echo "📦 Found existing JAR: $JAR_FILE ($FILE_SIZE)"
-    read -rp "   Re-download? [y/N]: " redownload
-    if [[ "$redownload" =~ ^[Yy]$ ]]; then
-        echo "⬇️  Re-downloading Burp Suite Professional v$VERSION ..."
-        curl -L "$LINK" -o "$JAR_FILE" --progress-bar
+    # Verify existing file is a real JAR (ZIP starts with PK magic bytes)
+    if head -c 2 "$JAR_FILE" | grep -q "PK"; then
+        FILE_SIZE=$(du -h "$JAR_FILE" | awk '{print $1}')
+        echo ""
+        echo "📦 Found existing JAR: $JAR_FILE ($FILE_SIZE)"
+        read -rp "   Re-download? [y/N]: " redownload
+        if [[ "$redownload" =~ ^[Yy]$ ]]; then
+            NEED_DOWNLOAD=true
+        else
+            NEED_DOWNLOAD=false
+            echo "⏩ Skipping download — using existing JAR."
+        fi
     else
-        echo "⏩ Skipping download — using existing JAR."
+        echo "⚠️  Existing file is corrupted. Re-downloading..."
+        rm -f "$JAR_FILE"
     fi
-else
+fi
+
+if [[ "$NEED_DOWNLOAD" == true ]]; then
     echo "⬇️  Downloading Burp Suite Professional v$VERSION ..."
     curl -L "$LINK" -o "$JAR_FILE" --progress-bar
+
+    # Validate: JAR files are ZIP archives (start with "PK" magic bytes)
+    if ! head -c 2 "$JAR_FILE" | grep -q "PK"; then
+        echo ""
+        echo "❌ Download failed — version $VERSION does not exist!"
+        echo "   PortSwigger returned an HTML page instead of a JAR file."
+        echo ""
+        echo "   Check available versions at:"
+        echo "   https://portswigger.net/burp/releases"
+        rm -f "$JAR_FILE"
+        exit 1
+    fi
+
+    FILE_SIZE=$(du -h "$JAR_FILE" | awk '{print $1}')
+    echo "✅ Downloaded successfully ($FILE_SIZE)"
 fi
 
 # Symlink latest jar
